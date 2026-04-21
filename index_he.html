@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>מעקב גלילי הדפסה 3D</title>
+    <!-- Icons for tabs -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-color: #bb86fc;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --border-color: #333333;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        @media(min-width: 768px) {
+            body {
+                padding: 2rem;
+            }
+        }
+
+        /* --- TABS --- */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+            width: 100%;
+            max-width: 1000px;
+        }
+        .tab-btn {
+            background-color: var(--surface-color);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            justify-content: center;
+        }
+        .tab-btn.active {
+            background-color: var(--primary-color);
+            color: #000;
+            border-color: var(--primary-color);
+            font-weight: bold;
+        }
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+        }
+        
+        .tab-content {
+            display: none;
+            width: 100%;
+            max-width: 1000px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        .container {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--surface-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        h1, h2 {
+            margin-top: 0;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            box-sizing: border-box;
+        }
+
+        button.submit-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-new { background-color: rgba(76, 175, 80, 0.2); color: #4caf50; }
+        .status-opened { background-color: rgba(255, 152, 0, 0.2); color: #ff9800; }
+
+        /* --- NEW GROUPING --- */
+        .material-group {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        .group-header {
+            background-color: var(--surface-color);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .group-header:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .material-group .items-grid {
+            padding: 1rem;
+            margin-top: 0;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+        }
+
+        /* --- NEW CARDS GRID SYSTEM --- */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .item-card {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .item-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        .item-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .item-body {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .item-photo {
+            width: 70px;
+            height: 70px;
+            border-radius: 6px;
+            object-fit: cover;
+            background-color: var(--surface-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        .item-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            font-size: 0.95rem;
+        }
+        .item-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+        .btn-edit, .btn-delete, .btn-save, .btn-cancel {
+            flex: 1;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .btn-edit { background-color: var(--surface-color); color: var(--text-primary); border: 1px solid var(--text-secondary); }
+        .btn-delete { background-color: rgba(244, 67, 54, 0.1); color: #f44336; border: 1px solid #f44336; }
+        .btn-save { background-color: #4caf50; color: white; border: 1px solid #4caf50; }
+        .btn-cancel { background-color: transparent; color: var(--text-secondary); border: 1px solid var(--text-secondary); }
+
+        /* Finance Styles */
+        .finance-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        @media (max-width: 600px) {
+            .finance-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+        .summary-card {
+            background-color: var(--surface-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        .summary-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+            direction: ltr; /* keep money left to right */
+        }
+        .text-green { color: #4caf50; }
+        .text-red { color: #f44336; }
+    </style>
+</head>
+<body>
+
+<!-- TABS NAVIGATION -->
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('filaments', event)"><i class="fa-solid fa-layer-group"></i> גלילי הדפסה</button>
+    <button class="tab-btn" onclick="switchTab('costs', event)"><i class="fa-solid fa-chart-pie"></i> עלויות וכספים</button>
+</div>
+
+<!-- FILAMENTS TAB -->
+<div id="tab-filaments" class="tab-content active">
+    <div class="container">
+        <div class="card">
+            <h2>הוספת גליל</h2>
+            <form id="addForm">
+                <div class="form-group">
+                    <label for="brand">יצרן (מותג)</label>
+                    <input type="text" id="brand" required placeholder="למשל Prusament">
+                </div>
+                <div class="form-group">
+                    <label for="color">צבע</label>
+                    <input type="text" id="color" required placeholder="למשל Galaxy Black">
+                </div>
+                <div class="form-group">
+                    <label for="material">סוג חומר</label>
+                    <select id="material" required>
+                        <option value="PLA">PLA</option>
+                        <option value="PLA Silk">PLA Silk</option>
+                        <option value="PLA Matte">PLA Matte</option>
+                        <option value="PETG">PETG</option>
+                        <option value="ABS">ABS</option>
+                        <option value="TPU">TPU</option>
+                        <option value="ASA">ASA</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="status">מצב</label>
+                    <select id="status" required>
+                        <option value="New">חדש</option>
+                        <option value="Opened">פתוח (משומש)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">כמות</label>
+                    <input type="number" id="quantity" required min="1" value="1">
+                </div>
+                <div class="form-group">
+                    <label for="purpose">מטרה</label>
+                    <select id="purpose" required>
+                        <option value="Keep">לשמור לעצמי</option>
+                        <option value="Sell">למכירה</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="photo">תמונה (אופציונלי)</label>
+                    <input type="file" id="photo" accept="image/*">
+                </div>
+                <button type="submit" class="submit-btn">הוסף גליל</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>המלאי שלי (לשימוש עצמי)</h2>
+            <div id="keepTable"></div>
+
+            <h2 style="margin-top: 2.5rem;">למכירה</h2>
+            <div id="sellTable"></div>
+        </div>
+    </div>
+</div>
+
+<!-- COSTS & FINANCE TAB -->
+<div id="tab-costs" class="tab-content">
+    <div class="finance-summary">
+        <div class="summary-card">
+            <h3>סה"כ הוצאות</h3>
+            <div class="summary-value text-red" id="totalSpent">₪0.00</div>
+        </div>
+        <div class="summary-card">
+            <h3>סה"כ הכנסות</h3>
+            <div class="summary-value text-green" id="totalEarned">₪0.00</div>
+        </div>
+        <div class="summary-card">
+            <h3>רווח נקי</h3>
+            <div class="summary-value" id="netProfit">₪0.00</div>
+        </div>
+    </div>
+
+    <div class="container" style="grid-template-columns: 1fr;">
+        <div class="card" style="margin-bottom: 2rem;">
+            <h2>הוספת פעולה</h2>
+            <form id="transactionForm">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="form-group">
+                        <label for="transType">סוג הפעולה</label>
+                        <select id="transType" required>
+                            <option value="Expense">קניית גלילים (הוצאה)</option>
+                            <option value="Income">מכירת הדפסה (הכנסה)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transAmount">סכום (₪)</label>
+                        <input type="number" id="transAmount" required step="0.01" placeholder="למשל 25.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="transDesc">תיאור</label>
+                        <input type="text" id="transDesc" required placeholder="למשל 2 גלילי PLA">
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn" style="margin-top: 1rem;">הוסף פעולה</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>היסטוריית פעולות</h2>
+            <div id="transactionTable" class="items-grid">
+                <!-- Rows will be populated here as Cards -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Tab Switching Logic
+    window.switchTab = function(tabId, event) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById('tab-' + tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+</script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAvbBDeOTAF8nbH3iug0-Ajr1BT64388SA",
+      authDomain: "filament-track-127dd.firebaseapp.com",
+      projectId: "filament-track-127dd",
+      storageBucket: "filament-track-127dd.firebasestorage.app",
+      messagingSenderId: "555306112092",
+      appId: "1:555306112092:web:5003f81c1b8a8210f7c299"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const filamentsRef = collection(db, "filaments");
+    const transactionsRef = collection(db, "transactions");
+
+    // --- HELPER: Image Compression ---
+    async function compressImage(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 400;
+                    let scaleSize = 1;
+                    if (img.width > MAX_WIDTH) {
+                        scaleSize = MAX_WIDTH / img.width;
+                    }
+                    canvas.width = img.width * scaleSize;
+                    canvas.height = img.height * scaleSize;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.6));
+                }
+            }
+        });
+    }
+
+    // --- FILAMENT LOGIC ---
+    const filamentsQuery = query(filamentsRef, orderBy("material", "asc"));
+    
+    onSnapshot(filamentsQuery, (snapshot) => {
+        const keepGroups = {};
+        const sellGroups = {};
+
+        snapshot.forEach((docSnap) => {
+            const filament = docSnap.data();
+            const docId = docSnap.id;
+            const div = document.createElement('div');
+            div.className = 'item-card';
+            
+            const statusClass = filament.status === 'New' ? 'status-new' : 'status-opened';
+            const statusText = filament.status === 'New' ? 'חדש' : (filament.status === 'Opened' ? 'פתוח' : filament.status);
+
+            const renderReadOnly = () => {
+                div.innerHTML = `
+                    <div class="item-header">
+                        <div>
+                            <div class="item-title">${filament.color}</div>
+                            <div class="item-subtitle">${filament.brand}</div>
+                        </div>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="item-body">
+                        ${filament.photo ? `<img src="${filament.photo}" class="item-photo">` : `<div class="item-photo">אין תמונה</div>`}
+                        <div class="item-details">
+                            <div><strong>חומר:</strong> ${filament.material}</div>
+                            <div><strong>כמות:</strong> ${filament.quantity || 1}</div>
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-edit">ערוך</button>
+                        <button class="btn-delete">מחק</button>
+                    </div>
+                `;
+                div.querySelector('.btn-edit').addEventListener('click', renderEdit);
+                div.querySelector('.btn-delete').addEventListener('click', async () => {
+                    if (confirm("האם למחוק גליל זה?")) await deleteDoc(doc(db, "filaments", docId));
+                });
+            };
+
+            const renderEdit = () => {
+                div.innerHTML = `
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <input type="text" class="edit-brand" value="${filament.brand}" placeholder="יצרן">
+                        <input type="text" class="edit-color" value="${filament.color}" placeholder="צבע">
+                        <select class="edit-material">
+                            <option value="PLA" ${filament.material === 'PLA' ? 'selected' : ''}>PLA</option>
+                            <option value="PLA Silk" ${filament.material === 'PLA Silk' ? 'selected' : ''}>PLA Silk</option>
+                            <option value="PLA Matte" ${filament.material === 'PLA Matte' ? 'selected' : ''}>PLA Matte</option>
+                            <option value="PETG" ${filament.material === 'PETG' ? 'selected' : ''}>PETG</option>
+                            <option value="ABS" ${filament.material === 'ABS' ? 'selected' : ''}>ABS</option>
+                            <option value="TPU" ${filament.material === 'TPU' ? 'selected' : ''}>TPU</option>
+                            <option value="ASA" ${filament.material === 'ASA' ? 'selected' : ''}>ASA</option>
+                        </select>
+                        <select class="edit-status">
+                            <option value="New" ${filament.status === 'New' ? 'selected' : ''}>חדש</option>
+                            <option value="Opened" ${filament.status === 'Opened' ? 'selected' : ''}>פתוח (משומש)</option>
+                        </select>
+                        <input type="number" class="edit-quantity" value="${filament.quantity || 1}" min="1" placeholder="כמות">
+                        <select class="edit-purpose">
+                            <option value="Keep" ${filament.purpose === 'Keep' ? 'selected' : ''}>לשמור לעצמי</option>
+                            <option value="Sell" ${filament.purpose === 'Sell' ? 'selected' : ''}>למכירה</option>
+                        </select>
+                        ${filament.photo ? `<img src="${filament.photo}" class="item-photo" style="align-self: center; margin: 0.5rem 0;">` : ''}
+                        <input type="file" class="edit-photo" accept="image/*" style="font-size: 0.8rem;">
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-cancel">ביטול</button>
+                        <button class="btn-save">שמור</button>
+                    </div>
+                `;
+                div.querySelector('.btn-save').addEventListener('click', async () => {
+                    const photoFile = div.querySelector('.edit-photo').files[0];
+                    let photoDataUrl = filament.photo || null;
+                    if (photoFile) {
+                        photoDataUrl = await compressImage(photoFile);
+                    }
+
+                    await updateDoc(doc(db, "filaments", docId), {
+                        brand: div.querySelector('.edit-brand').value,
+                        color: div.querySelector('.edit-color').value,
+                        material: div.querySelector('.edit-material').value,
+                        status: div.querySelector('.edit-status').value,
+                        quantity: parseInt(div.querySelector('.edit-quantity').value) || 1,
+                        purpose: div.querySelector('.edit-purpose').value,
+                        photo: photoDataUrl
+                    });
+                });
+                div.querySelector('.btn-cancel').addEventListener('click', renderReadOnly);
+            };
+
+            renderReadOnly();
+            
+            const targetGroup = filament.purpose === 'Keep' ? keepGroups : sellGroups;
+            const mat = filament.material || 'Unknown';
+            if (!targetGroup[mat]) targetGroup[mat] = { totalQty: 0, items: [] };
+            targetGroup[mat].totalQty += (filament.quantity || 1);
+            targetGroup[mat].items.push(div);
+        });
+
+        const renderGroups = (groupsObj, containerId) => {
+            const containerEl = document.getElementById(containerId);
+            containerEl.innerHTML = '';
+            
+            const sortedMaterials = Object.keys(groupsObj).sort();
+            if(sortedMaterials.length === 0) {
+                containerEl.innerHTML = '<div style="color:var(--text-secondary); padding: 1rem;">לא נמצאו גלילים.</div>';
+                return;
+            }
+
+            sortedMaterials.forEach(mat => {
+                const groupData = groupsObj[mat];
+                
+                const groupWrapper = document.createElement('div');
+                groupWrapper.className = 'material-group';
+                
+                const header = document.createElement('div');
+                header.className = 'group-header';
+                header.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <i class="fa-solid fa-chevron-left toggle-icon" style="color:var(--text-secondary); width: 20px;"></i>
+                        <span style="font-weight:bold; font-size:1.1rem;">${mat}</span>
+                    </div>
+                    <span class="status-badge" style="background:var(--primary-color); color:#000;">סה"כ כמות: ${groupData.totalQty}</span>
+                `;
+                
+                const grid = document.createElement('div');
+                grid.className = 'items-grid';
+                grid.style.display = 'none';
+                groupData.items.forEach(item => grid.appendChild(item));
+                
+                header.addEventListener('click', () => {
+                    grid.style.display = grid.style.display === 'none' ? 'grid' : 'none';
+                    const icon = header.querySelector('.toggle-icon');
+                    icon.classList.toggle('fa-chevron-down');
+                    icon.classList.toggle('fa-chevron-left');
+                });
+                
+                groupWrapper.appendChild(header);
+                groupWrapper.appendChild(grid);
+                containerEl.appendChild(groupWrapper);
+            });
+        };
+
+        renderGroups(keepGroups, 'keepTable');
+        renderGroups(sellGroups, 'sellTable');
+    });
+
+    document.getElementById('addForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const fileInput = document.getElementById('photo');
+        let photoDataUrl = null;
+        if (fileInput.files.length > 0) {
+            photoDataUrl = await compressImage(fileInput.files[0]);
+        }
+
+        const newFilament = {
+            brand: document.getElementById('brand').value,
+            color: document.getElementById('color').value,
+            material: document.getElementById('material').value,
+            status: document.getElementById('status').value,
+            quantity: parseInt(document.getElementById('quantity').value) || 1,
+            purpose: document.getElementById('purpose').value,
+            photo: photoDataUrl,
+            createdAt: new Date()
+        };
+        await addDoc(filamentsRef, newFilament);
+        document.getElementById('addForm').reset();
+        document.getElementById('quantity').value = 1;
+    });
+
+    // --- FINANCE LOGIC ---
+    const qFinance = query(transactionsRef, orderBy("createdAt", "desc"));
+    onSnapshot(qFinance, (snapshot) => {
+        const tableBody = document.getElementById('transactionTable');
+        tableBody.innerHTML = '';
+        
+        let totalSpent = 0;
+        let totalEarned = 0;
+
+        snapshot.forEach((docSnap) => {
+            const trans = docSnap.data();
+            const docId = docSnap.id;
+            
+            if (trans.type === 'Expense') totalSpent += Number(trans.amount);
+            if (trans.type === 'Income') totalEarned += Number(trans.amount);
+
+            const div = document.createElement('div');
+            div.className = 'item-card';
+
+            const dateStr = trans.createdAt ? new Date(trans.createdAt.toDate()).toLocaleDateString('he-IL') : new Date().toLocaleDateString('he-IL');
+            const amountColor = trans.type === 'Income' ? '#4caf50' : '#f44336';
+            const sign = trans.type === 'Income' ? '+' : '-';
+            const typeText = trans.type === 'Expense' ? 'הוצאה' : (trans.type === 'Income' ? 'הכנסה' : trans.type);
+
+            const renderReadOnly = () => {
+                div.innerHTML = `
+                    <div class="item-header">
+                        <div>
+                            <div class="item-title">${typeText}</div>
+                            <div class="item-subtitle">${dateStr}</div>
+                        </div>
+                        <div style="color: ${amountColor}; font-weight: bold; font-size: 1.2rem; direction: ltr;">
+                            ${sign}₪${Math.abs(Number(trans.amount)).toFixed(2)}
+                        </div>
+                    </div>
+                    <div class="item-body" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                        <div style="color: var(--text-secondary);">${trans.description}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-edit">ערוך</button>
+                        <button class="btn-delete">מחק</button>
+                    </div>
+                `;
+                div.querySelector('.btn-edit').addEventListener('click', renderEdit);
+                div.querySelector('.btn-delete').addEventListener('click', async () => {
+                    if (confirm("האם למחוק פעולה זו?")) await deleteDoc(doc(db, "transactions", docId));
+                });
+            };
+
+            const renderEdit = () => {
+                div.innerHTML = `
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <select class="edit-type">
+                            <option value="Expense" ${trans.type === 'Expense' ? 'selected' : ''}>הוצאה</option>
+                            <option value="Income" ${trans.type === 'Income' ? 'selected' : ''}>הכנסה</option>
+                        </select>
+                        <input type="text" class="edit-desc" value="${trans.description}" placeholder="תיאור">
+                        <input type="number" class="edit-amount" value="${trans.amount}" step="0.01" placeholder="סכום">
+                    </div>
+                    <div class="item-actions" style="margin-top: 1rem;">
+                        <button class="btn-cancel">ביטול</button>
+                        <button class="btn-save">שמור</button>
+                    </div>
+                `;
+                div.querySelector('.btn-save').addEventListener('click', async () => {
+                    await updateDoc(doc(db, "transactions", docId), {
+                        type: div.querySelector('.edit-type').value,
+                        description: div.querySelector('.edit-desc').value,
+                        amount: Number(div.querySelector('.edit-amount').value)
+                    });
+                });
+                div.querySelector('.btn-cancel').addEventListener('click', renderReadOnly);
+            };
+
+            renderReadOnly();
+            tableBody.appendChild(div);
+        });
+
+        // Update summaries
+        document.getElementById('totalSpent').innerText = '₪' + totalSpent.toFixed(2);
+        document.getElementById('totalEarned').innerText = '₪' + totalEarned.toFixed(2);
+        
+        const net = totalEarned - totalSpent;
+        const netEl = document.getElementById('netProfit');
+        netEl.innerText = '₪' + net.toFixed(2);
+        netEl.style.color = net >= 0 ? '#4caf50' : '#f44336';
+    }, (error) => {
+        console.error("Finance error:", error);
+    });
+
+    document.getElementById('transactionForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newTrans = {
+            type: document.getElementById('transType').value,
+            amount: Number(document.getElementById('transAmount').value),
+            description: document.getElementById('transDesc').value,
+            createdAt: new Date()
+        };
+        await addDoc(transactionsRef, newTrans);
+        document.getElementById('transactionForm').reset();
+    });
+
+</script>
+</body>
+</html>
