@@ -270,6 +270,7 @@
                     <select id="material" required>
                         <option value="PLA">PLA</option>
                         <option value="PLA Silk">PLA Silk</option>
+                        <option value="PLA Matte">PLA Matte</option>
                         <option value="PETG">PETG</option>
                         <option value="ABS">ABS</option>
                         <option value="TPU">TPU</option>
@@ -294,6 +295,10 @@
                         <option value="Sell">Up for sale</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label for="photo">Photo (Optional)</label>
+                    <input type="file" id="photo" accept="image/*">
+                </div>
                 <button type="submit" class="submit-btn">Add Roll</button>
             </form>
         </div>
@@ -308,6 +313,7 @@
                         <th>Material</th>
                         <th>Status</th>
                         <th>Qty</th>
+                        <th>Photo</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -323,6 +329,7 @@
                         <th>Material</th>
                         <th>Status</th>
                         <th>Qty</th>
+                        <th>Photo</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -423,8 +430,36 @@
     const filamentsRef = collection(db, "filaments");
     const transactionsRef = collection(db, "transactions");
 
+    // --- HELPER: Image Compression ---
+    async function compressImage(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 400;
+                    let scaleSize = 1;
+                    if (img.width > MAX_WIDTH) {
+                        scaleSize = MAX_WIDTH / img.width;
+                    }
+                    canvas.width = img.width * scaleSize;
+                    canvas.height = img.height * scaleSize;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.6)); // 60% quality jpeg
+                }
+            }
+        });
+    }
+
     // --- FILAMENT LOGIC ---
-    onSnapshot(filamentsRef, (snapshot) => {
+    // SORTING: Query is ordered by material ascending
+    const filamentsQuery = query(filamentsRef, orderBy("material", "asc"));
+    
+    onSnapshot(filamentsQuery, (snapshot) => {
         const keepTableBody = document.getElementById('keepTable');
         const sellTableBody = document.getElementById('sellTable');
         keepTableBody.innerHTML = '';
@@ -436,6 +471,10 @@
             const tr = document.createElement('tr');
             const statusClass = filament.status === 'New' ? 'status-new' : 'status-opened';
 
+            const photoHTML = filament.photo 
+                ? `<img src="${filament.photo}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">` 
+                : '<span style="color:var(--text-secondary); font-size:0.8rem;">No Photo</span>';
+
             const renderReadOnly = () => {
                 tr.innerHTML = `
                     <td data-label="Brand">${filament.brand}</td>
@@ -443,6 +482,7 @@
                     <td data-label="Material">${filament.material}</td>
                     <td data-label="Status"><span class="status-badge ${statusClass}">${filament.status}</span></td>
                     <td data-label="Qty">${filament.quantity || 1}</td>
+                    <td data-label="Photo">${photoHTML}</td>
                     <td data-label="Actions" style="white-space: nowrap;">
                         <button class="btn-edit" style="width: auto; padding: 0.25rem 0.5rem; margin-right: 0.25rem;">Edit</button>
                         <button class="btn-delete" style="width: auto; padding: 0.25rem 0.5rem; background-color: #f44336; border: none; border-radius: 4px; color: white;">Delete</button>
@@ -455,27 +495,36 @@
             };
 
             const renderEdit = () => {
+                const photoEditHTML = filament.photo 
+                    ? `<img src="${filament.photo}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; display:block; margin-bottom: 0.5rem;">` 
+                    : '';
+
                 tr.innerHTML = `
-                    <td><input type="text" class="edit-brand" value="${filament.brand}" style="padding: 0.25rem; width: 80px;"></td>
-                    <td><input type="text" class="edit-color" value="${filament.color}" style="padding: 0.25rem; width: 80px;"></td>
-                    <td>
+                    <td data-label="Brand"><input type="text" class="edit-brand" value="${filament.brand}" style="padding: 0.25rem; width: 80px;"></td>
+                    <td data-label="Color"><input type="text" class="edit-color" value="${filament.color}" style="padding: 0.25rem; width: 80px;"></td>
+                    <td data-label="Material">
                         <select class="edit-material" style="padding: 0.25rem; width: 80px;">
                             <option value="PLA" ${filament.material === 'PLA' ? 'selected' : ''}>PLA</option>
                             <option value="PLA Silk" ${filament.material === 'PLA Silk' ? 'selected' : ''}>PLA Silk</option>
+                            <option value="PLA Matte" ${filament.material === 'PLA Matte' ? 'selected' : ''}>PLA Matte</option>
                             <option value="PETG" ${filament.material === 'PETG' ? 'selected' : ''}>PETG</option>
                             <option value="ABS" ${filament.material === 'ABS' ? 'selected' : ''}>ABS</option>
                             <option value="TPU" ${filament.material === 'TPU' ? 'selected' : ''}>TPU</option>
                             <option value="ASA" ${filament.material === 'ASA' ? 'selected' : ''}>ASA</option>
                         </select>
                     </td>
-                    <td>
+                    <td data-label="Status">
                         <select class="edit-status" style="padding: 0.25rem; width: 80px;">
                             <option value="New" ${filament.status === 'New' ? 'selected' : ''}>New</option>
                             <option value="Opened" ${filament.status === 'Opened' ? 'selected' : ''}>Opened</option>
                         </select>
                     </td>
-                    <td><input type="number" class="edit-quantity" value="${filament.quantity || 1}" min="1" style="padding: 0.25rem; width: 50px;"></td>
-                    <td style="white-space: nowrap; min-width: 150px;">
+                    <td data-label="Qty"><input type="number" class="edit-quantity" value="${filament.quantity || 1}" min="1" style="padding: 0.25rem; width: 50px;"></td>
+                    <td data-label="Photo">
+                        ${photoEditHTML}
+                        <input type="file" class="edit-photo" accept="image/*" style="width: 150px; font-size: 0.8rem;">
+                    </td>
+                    <td data-label="Actions" style="white-space: nowrap; min-width: 150px;">
                         <select class="edit-purpose" style="padding: 0.25rem; width: 60px; margin-right: 0.25rem;">
                             <option value="Keep" ${filament.purpose === 'Keep' ? 'selected' : ''}>Keep</option>
                             <option value="Sell" ${filament.purpose === 'Sell' ? 'selected' : ''}>Sell</option>
@@ -485,13 +534,20 @@
                     </td>
                 `;
                 tr.querySelector('.btn-save').addEventListener('click', async () => {
+                    const photoFile = tr.querySelector('.edit-photo').files[0];
+                    let photoDataUrl = filament.photo || null;
+                    if (photoFile) {
+                        photoDataUrl = await compressImage(photoFile);
+                    }
+
                     await updateDoc(doc(db, "filaments", docId), {
                         brand: tr.querySelector('.edit-brand').value,
                         color: tr.querySelector('.edit-color').value,
                         material: tr.querySelector('.edit-material').value,
                         status: tr.querySelector('.edit-status').value,
                         quantity: parseInt(tr.querySelector('.edit-quantity').value) || 1,
-                        purpose: tr.querySelector('.edit-purpose').value
+                        purpose: tr.querySelector('.edit-purpose').value,
+                        photo: photoDataUrl
                     });
                 });
                 tr.querySelector('.btn-cancel').addEventListener('click', renderReadOnly);
@@ -505,6 +561,13 @@
 
     document.getElementById('addForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        const fileInput = document.getElementById('photo');
+        let photoDataUrl = null;
+        if (fileInput.files.length > 0) {
+            photoDataUrl = await compressImage(fileInput.files[0]);
+        }
+
         const newFilament = {
             brand: document.getElementById('brand').value,
             color: document.getElementById('color').value,
@@ -512,6 +575,7 @@
             status: document.getElementById('status').value,
             quantity: parseInt(document.getElementById('quantity').value) || 1,
             purpose: document.getElementById('purpose').value,
+            photo: photoDataUrl,
             createdAt: new Date()
         };
         await addDoc(filamentsRef, newFilament);
@@ -520,8 +584,8 @@
     });
 
     // --- FINANCE LOGIC ---
-    const q = query(transactionsRef, orderBy("createdAt", "desc"));
-    onSnapshot(q, (snapshot) => {
+    const qFinance = query(transactionsRef, orderBy("createdAt", "desc"));
+    onSnapshot(qFinance, (snapshot) => {
         const tableBody = document.getElementById('transactionTable');
         tableBody.innerHTML = '';
         
@@ -559,16 +623,16 @@
 
             const renderEdit = () => {
                 tr.innerHTML = `
-                    <td>${dateStr}</td>
-                    <td>
+                    <td data-label="Date">${dateStr}</td>
+                    <td data-label="Type">
                         <select class="edit-type" style="padding: 0.25rem;">
                             <option value="Expense" ${trans.type === 'Expense' ? 'selected' : ''}>Expense</option>
                             <option value="Income" ${trans.type === 'Income' ? 'selected' : ''}>Income</option>
                         </select>
                     </td>
-                    <td><input type="text" class="edit-desc" value="${trans.description}" style="padding: 0.25rem; width: 100%;"></td>
-                    <td><input type="number" class="edit-amount" value="${trans.amount}" step="0.01" style="padding: 0.25rem; width: 80px;"></td>
-                    <td style="white-space: nowrap;">
+                    <td data-label="Description"><input type="text" class="edit-desc" value="${trans.description}" style="padding: 0.25rem; width: 100%;"></td>
+                    <td data-label="Amount"><input type="number" class="edit-amount" value="${trans.amount}" step="0.01" style="padding: 0.25rem; width: 80px;"></td>
+                    <td data-label="Actions" style="white-space: nowrap;">
                         <button class="btn-save" style="width: auto; padding: 0.25rem 0.5rem; background-color: #4caf50; border: none; border-radius: 4px; color: white; margin-right: 0.25rem;">Save</button>
                         <button class="btn-cancel" style="width: auto; padding: 0.25rem 0.5rem; background-color: #9e9e9e; border: none; border-radius: 4px; color: white;">Cancel</button>
                     </td>
