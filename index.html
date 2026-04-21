@@ -23,10 +23,15 @@
             background-color: var(--bg-color);
             color: var(--text-primary);
             margin: 0;
-            padding: 2rem;
+            padding: 1rem;
             display: flex;
             flex-direction: column;
             align-items: center;
+        }
+        @media(min-width: 768px) {
+            body {
+                padding: 2rem;
+            }
         }
 
         /* --- TABS --- */
@@ -42,7 +47,7 @@
             background-color: var(--surface-color);
             color: var(--text-secondary);
             border: 1px solid var(--border-color);
-            padding: 1rem 2rem;
+            padding: 1rem;
             border-radius: 8px;
             font-size: 1.1rem;
             cursor: pointer;
@@ -59,6 +64,12 @@
             border-color: var(--primary-color);
             font-weight: bold;
         }
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+        }
+        
         .tab-content {
             display: none;
             width: 100%;
@@ -78,9 +89,6 @@
         @media (max-width: 768px) {
             .container {
                 grid-template-columns: 1fr;
-            }
-            .tabs {
-                flex-direction: column;
             }
         }
 
@@ -133,76 +141,6 @@
             opacity: 0.9;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        th {
-            color: var(--text-secondary);
-            font-weight: 600;
-        }
-
-        /* Mobile App Feel - Responsive Tables */
-        @media (max-width: 768px) {
-            table, thead, tbody, th, td, tr {
-                display: block;
-            }
-            thead tr {
-                position: absolute;
-                top: -9999px;
-                left: -9999px;
-            }
-            tr {
-                border: 1px solid var(--border-color);
-                border-radius: 8px;
-                margin-bottom: 1rem;
-                padding: 1rem;
-                background-color: var(--bg-color);
-            }
-            td {
-                border: none;
-                border-bottom: 1px solid var(--border-color);
-                position: relative;
-                padding-left: 50%;
-                text-align: right;
-                min-height: 1.5rem;
-                padding-bottom: 0.5rem;
-                padding-top: 0.5rem;
-            }
-            td:last-child {
-                border-bottom: 0;
-            }
-            td:before {
-                position: absolute;
-                top: 0.5rem;
-                left: 0;
-                width: 45%;
-                padding-right: 10px;
-                white-space: nowrap;
-                text-align: left;
-                font-weight: bold;
-                color: var(--text-secondary);
-                content: attr(data-label);
-            }
-            /* Adjust inputs for mobile edit mode */
-            td input, td select {
-                width: 100% !important;
-                margin-top: 0.5rem;
-            }
-            td .btn-save, td .btn-cancel, td .btn-edit, td .btn-delete {
-                width: 100% !important;
-                margin-top: 0.5rem;
-                display: block;
-            }
-        }
-
         .status-badge {
             padding: 0.25rem 0.75rem;
             border-radius: 999px;
@@ -212,8 +150,83 @@
 
         .status-new { background-color: rgba(76, 175, 80, 0.2); color: #4caf50; }
         .status-opened { background-color: rgba(255, 152, 0, 0.2); color: #ff9800; }
-        .purpose-keep { background-color: rgba(33, 150, 243, 0.2); color: #2196f3; }
-        .purpose-sell { background-color: rgba(156, 39, 176, 0.2); color: #e040fb; }
+
+        /* --- NEW CARDS GRID SYSTEM (Replaces Tables) --- */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .item-card {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .item-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        .item-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .item-body {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .item-photo {
+            width: 70px;
+            height: 70px;
+            border-radius: 6px;
+            object-fit: cover;
+            background-color: var(--surface-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        .item-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            font-size: 0.95rem;
+        }
+        .item-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+        .btn-edit, .btn-delete, .btn-save, .btn-cancel {
+            flex: 1;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .btn-edit { background-color: var(--surface-color); color: var(--text-primary); border: 1px solid var(--text-secondary); }
+        .btn-delete { background-color: rgba(244, 67, 54, 0.1); color: #f44336; border: 1px solid #f44336; }
+        .btn-save { background-color: #4caf50; color: white; border: 1px solid #4caf50; }
+        .btn-cancel { background-color: transparent; color: var(--text-secondary); border: 1px solid var(--text-secondary); }
 
         /* Finance Styles */
         .finance-summary {
@@ -305,36 +318,10 @@
 
         <div class="card">
             <h2>My Inventory (Keeping)</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Brand</th>
-                        <th>Color</th>
-                        <th>Material</th>
-                        <th>Status</th>
-                        <th>Qty</th>
-                        <th>Photo</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="keepTable"></tbody>
-            </table>
+            <div id="keepTable" class="items-grid"></div>
 
-            <h2 style="margin-top: 2rem;">For Sale</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Brand</th>
-                        <th>Color</th>
-                        <th>Material</th>
-                        <th>Status</th>
-                        <th>Qty</th>
-                        <th>Photo</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="sellTable"></tbody>
-            </table>
+            <h2 style="margin-top: 2.5rem;">For Sale</h2>
+            <div id="sellTable" class="items-grid"></div>
         </div>
     </div>
 </div>
@@ -383,20 +370,9 @@
 
         <div class="card">
             <h2>Transaction History</h2>
-            <table style="width: 100%;">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th>Description</th>
-                        <th>Amount</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="transactionTable">
-                    <!-- Rows will be populated here -->
-                </tbody>
-            </table>
+            <div id="transactionTable" class="items-grid">
+                <!-- Rows will be populated here as Cards -->
+            </div>
         </div>
     </div>
 </div>
@@ -449,14 +425,13 @@
                     canvas.height = img.height * scaleSize;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.6)); // 60% quality jpeg
+                    resolve(canvas.toDataURL('image/jpeg', 0.6));
                 }
             }
         });
     }
 
     // --- FILAMENT LOGIC ---
-    // SORTING: Query is ordered by material ascending
     const filamentsQuery = query(filamentsRef, orderBy("material", "asc"));
     
     onSnapshot(filamentsQuery, (snapshot) => {
@@ -468,42 +443,43 @@
         snapshot.forEach((docSnap) => {
             const filament = docSnap.data();
             const docId = docSnap.id;
-            const tr = document.createElement('tr');
+            const div = document.createElement('div');
+            div.className = 'item-card';
             const statusClass = filament.status === 'New' ? 'status-new' : 'status-opened';
 
-            const photoHTML = filament.photo 
-                ? `<img src="${filament.photo}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">` 
-                : '<span style="color:var(--text-secondary); font-size:0.8rem;">No Photo</span>';
-
             const renderReadOnly = () => {
-                tr.innerHTML = `
-                    <td data-label="Brand">${filament.brand}</td>
-                    <td data-label="Color">${filament.color}</td>
-                    <td data-label="Material">${filament.material}</td>
-                    <td data-label="Status"><span class="status-badge ${statusClass}">${filament.status}</span></td>
-                    <td data-label="Qty">${filament.quantity || 1}</td>
-                    <td data-label="Photo">${photoHTML}</td>
-                    <td data-label="Actions" style="white-space: nowrap;">
-                        <button class="btn-edit" style="width: auto; padding: 0.25rem 0.5rem; margin-right: 0.25rem;">Edit</button>
-                        <button class="btn-delete" style="width: auto; padding: 0.25rem 0.5rem; background-color: #f44336; border: none; border-radius: 4px; color: white;">Delete</button>
-                    </td>
+                div.innerHTML = `
+                    <div class="item-header">
+                        <div>
+                            <div class="item-title">${filament.brand}</div>
+                            <div class="item-subtitle">${filament.color}</div>
+                        </div>
+                        <span class="status-badge ${statusClass}">${filament.status}</span>
+                    </div>
+                    <div class="item-body">
+                        ${filament.photo ? `<img src="${filament.photo}" class="item-photo">` : `<div class="item-photo">No Photo</div>`}
+                        <div class="item-details">
+                            <div><strong>Material:</strong> ${filament.material}</div>
+                            <div><strong>Qty:</strong> ${filament.quantity || 1}</div>
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-edit">Edit</button>
+                        <button class="btn-delete">Delete</button>
+                    </div>
                 `;
-                tr.querySelector('.btn-edit').addEventListener('click', renderEdit);
-                tr.querySelector('.btn-delete').addEventListener('click', async () => {
+                div.querySelector('.btn-edit').addEventListener('click', renderEdit);
+                div.querySelector('.btn-delete').addEventListener('click', async () => {
                     if (confirm("Delete this roll?")) await deleteDoc(doc(db, "filaments", docId));
                 });
             };
 
             const renderEdit = () => {
-                const photoEditHTML = filament.photo 
-                    ? `<img src="${filament.photo}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; display:block; margin-bottom: 0.5rem;">` 
-                    : '';
-
-                tr.innerHTML = `
-                    <td data-label="Brand"><input type="text" class="edit-brand" value="${filament.brand}" style="padding: 0.25rem; width: 80px;"></td>
-                    <td data-label="Color"><input type="text" class="edit-color" value="${filament.color}" style="padding: 0.25rem; width: 80px;"></td>
-                    <td data-label="Material">
-                        <select class="edit-material" style="padding: 0.25rem; width: 80px;">
+                div.innerHTML = `
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <input type="text" class="edit-brand" value="${filament.brand}" placeholder="Brand">
+                        <input type="text" class="edit-color" value="${filament.color}" placeholder="Color">
+                        <select class="edit-material">
                             <option value="PLA" ${filament.material === 'PLA' ? 'selected' : ''}>PLA</option>
                             <option value="PLA Silk" ${filament.material === 'PLA Silk' ? 'selected' : ''}>PLA Silk</option>
                             <option value="PLA Matte" ${filament.material === 'PLA Matte' ? 'selected' : ''}>PLA Matte</option>
@@ -512,50 +488,46 @@
                             <option value="TPU" ${filament.material === 'TPU' ? 'selected' : ''}>TPU</option>
                             <option value="ASA" ${filament.material === 'ASA' ? 'selected' : ''}>ASA</option>
                         </select>
-                    </td>
-                    <td data-label="Status">
-                        <select class="edit-status" style="padding: 0.25rem; width: 80px;">
+                        <select class="edit-status">
                             <option value="New" ${filament.status === 'New' ? 'selected' : ''}>New</option>
                             <option value="Opened" ${filament.status === 'Opened' ? 'selected' : ''}>Opened</option>
                         </select>
-                    </td>
-                    <td data-label="Qty"><input type="number" class="edit-quantity" value="${filament.quantity || 1}" min="1" style="padding: 0.25rem; width: 50px;"></td>
-                    <td data-label="Photo">
-                        ${photoEditHTML}
-                        <input type="file" class="edit-photo" accept="image/*" style="width: 150px; font-size: 0.8rem;">
-                    </td>
-                    <td data-label="Actions" style="white-space: nowrap; min-width: 150px;">
-                        <select class="edit-purpose" style="padding: 0.25rem; width: 60px; margin-right: 0.25rem;">
+                        <input type="number" class="edit-quantity" value="${filament.quantity || 1}" min="1" placeholder="Qty">
+                        <select class="edit-purpose">
                             <option value="Keep" ${filament.purpose === 'Keep' ? 'selected' : ''}>Keep</option>
                             <option value="Sell" ${filament.purpose === 'Sell' ? 'selected' : ''}>Sell</option>
                         </select>
-                        <button class="btn-save" style="width: auto; padding: 0.25rem 0.5rem; background-color: #4caf50; border: none; border-radius: 4px; color: white;">Save</button>
-                        <button class="btn-cancel" style="width: auto; padding: 0.25rem 0.5rem; background-color: #9e9e9e; border: none; border-radius: 4px; color: white;">Cancel</button>
-                    </td>
+                        ${filament.photo ? `<img src="${filament.photo}" class="item-photo" style="align-self: center; margin: 0.5rem 0;">` : ''}
+                        <input type="file" class="edit-photo" accept="image/*" style="font-size: 0.8rem;">
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-cancel">Cancel</button>
+                        <button class="btn-save">Save</button>
+                    </div>
                 `;
-                tr.querySelector('.btn-save').addEventListener('click', async () => {
-                    const photoFile = tr.querySelector('.edit-photo').files[0];
+                div.querySelector('.btn-save').addEventListener('click', async () => {
+                    const photoFile = div.querySelector('.edit-photo').files[0];
                     let photoDataUrl = filament.photo || null;
                     if (photoFile) {
                         photoDataUrl = await compressImage(photoFile);
                     }
 
                     await updateDoc(doc(db, "filaments", docId), {
-                        brand: tr.querySelector('.edit-brand').value,
-                        color: tr.querySelector('.edit-color').value,
-                        material: tr.querySelector('.edit-material').value,
-                        status: tr.querySelector('.edit-status').value,
-                        quantity: parseInt(tr.querySelector('.edit-quantity').value) || 1,
-                        purpose: tr.querySelector('.edit-purpose').value,
+                        brand: div.querySelector('.edit-brand').value,
+                        color: div.querySelector('.edit-color').value,
+                        material: div.querySelector('.edit-material').value,
+                        status: div.querySelector('.edit-status').value,
+                        quantity: parseInt(div.querySelector('.edit-quantity').value) || 1,
+                        purpose: div.querySelector('.edit-purpose').value,
                         photo: photoDataUrl
                     });
                 });
-                tr.querySelector('.btn-cancel').addEventListener('click', renderReadOnly);
+                div.querySelector('.btn-cancel').addEventListener('click', renderReadOnly);
             };
 
             renderReadOnly();
-            if (filament.purpose === 'Keep') keepTableBody.appendChild(tr);
-            else sellTableBody.appendChild(tr);
+            if (filament.purpose === 'Keep') keepTableBody.appendChild(div);
+            else sellTableBody.appendChild(div);
         });
     });
 
@@ -599,56 +571,65 @@
             if (trans.type === 'Expense') totalSpent += Number(trans.amount);
             if (trans.type === 'Income') totalEarned += Number(trans.amount);
 
-            const tr = document.createElement('tr');
+            const div = document.createElement('div');
+            div.className = 'item-card';
+
             const dateStr = trans.createdAt ? new Date(trans.createdAt.toDate()).toLocaleDateString() : new Date().toLocaleDateString();
             const amountColor = trans.type === 'Income' ? '#4caf50' : '#f44336';
             const sign = trans.type === 'Income' ? '+' : '-';
 
             const renderReadOnly = () => {
-                tr.innerHTML = `
-                    <td data-label="Date">${dateStr}</td>
-                    <td data-label="Type">${trans.type}</td>
-                    <td data-label="Description">${trans.description}</td>
-                    <td data-label="Amount" style="color: ${amountColor}; font-weight: bold;">${sign}₪${Math.abs(Number(trans.amount)).toFixed(2)}</td>
-                    <td data-label="Actions" style="white-space: nowrap;">
-                        <button class="btn-edit" style="width: auto; padding: 0.25rem 0.5rem; margin-right: 0.25rem;">Edit</button>
-                        <button class="btn-delete" style="width: auto; padding: 0.25rem 0.5rem; background-color: #f44336; border: none; border-radius: 4px; color: white;">Delete</button>
-                    </td>
+                div.innerHTML = `
+                    <div class="item-header">
+                        <div>
+                            <div class="item-title">${trans.type}</div>
+                            <div class="item-subtitle">${dateStr}</div>
+                        </div>
+                        <div style="color: ${amountColor}; font-weight: bold; font-size: 1.2rem;">
+                            ${sign}₪${Math.abs(Number(trans.amount)).toFixed(2)}
+                        </div>
+                    </div>
+                    <div class="item-body" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                        <div style="color: var(--text-secondary);">${trans.description}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-edit">Edit</button>
+                        <button class="btn-delete">Delete</button>
+                    </div>
                 `;
-                tr.querySelector('.btn-edit').addEventListener('click', renderEdit);
-                tr.querySelector('.btn-delete').addEventListener('click', async () => {
+                div.querySelector('.btn-edit').addEventListener('click', renderEdit);
+                div.querySelector('.btn-delete').addEventListener('click', async () => {
                     if (confirm("Delete this transaction?")) await deleteDoc(doc(db, "transactions", docId));
                 });
             };
 
             const renderEdit = () => {
-                tr.innerHTML = `
-                    <td data-label="Date">${dateStr}</td>
-                    <td data-label="Type">
-                        <select class="edit-type" style="padding: 0.25rem;">
+                div.innerHTML = `
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <select class="edit-type">
                             <option value="Expense" ${trans.type === 'Expense' ? 'selected' : ''}>Expense</option>
                             <option value="Income" ${trans.type === 'Income' ? 'selected' : ''}>Income</option>
                         </select>
-                    </td>
-                    <td data-label="Description"><input type="text" class="edit-desc" value="${trans.description}" style="padding: 0.25rem; width: 100%;"></td>
-                    <td data-label="Amount"><input type="number" class="edit-amount" value="${trans.amount}" step="0.01" style="padding: 0.25rem; width: 80px;"></td>
-                    <td data-label="Actions" style="white-space: nowrap;">
-                        <button class="btn-save" style="width: auto; padding: 0.25rem 0.5rem; background-color: #4caf50; border: none; border-radius: 4px; color: white; margin-right: 0.25rem;">Save</button>
-                        <button class="btn-cancel" style="width: auto; padding: 0.25rem 0.5rem; background-color: #9e9e9e; border: none; border-radius: 4px; color: white;">Cancel</button>
-                    </td>
+                        <input type="text" class="edit-desc" value="${trans.description}" placeholder="Description">
+                        <input type="number" class="edit-amount" value="${trans.amount}" step="0.01" placeholder="Amount">
+                    </div>
+                    <div class="item-actions" style="margin-top: 1rem;">
+                        <button class="btn-cancel">Cancel</button>
+                        <button class="btn-save">Save</button>
+                    </div>
                 `;
-                tr.querySelector('.btn-save').addEventListener('click', async () => {
+                div.querySelector('.btn-save').addEventListener('click', async () => {
                     await updateDoc(doc(db, "transactions", docId), {
-                        type: tr.querySelector('.edit-type').value,
-                        description: tr.querySelector('.edit-desc').value,
-                        amount: Number(tr.querySelector('.edit-amount').value)
+                        type: div.querySelector('.edit-type').value,
+                        description: div.querySelector('.edit-desc').value,
+                        amount: Number(div.querySelector('.edit-amount').value)
                     });
                 });
-                tr.querySelector('.btn-cancel').addEventListener('click', renderReadOnly);
+                div.querySelector('.btn-cancel').addEventListener('click', renderReadOnly);
             };
 
             renderReadOnly();
-            tableBody.appendChild(tr);
+            tableBody.appendChild(div);
         });
 
         // Update summaries
@@ -660,7 +641,6 @@
         netEl.innerText = '₪' + net.toFixed(2);
         netEl.style.color = net >= 0 ? '#4caf50' : '#f44336';
     }, (error) => {
-        // If indexing error happens (which requires building an index in Firebase)
         console.error("Finance error:", error);
     });
 
