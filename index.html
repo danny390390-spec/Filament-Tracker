@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Filament Tracker</title>
+    <!-- Icons for tabs -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-color: #bb86fc;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --border-color: #333333;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- TABS --- */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+            width: 100%;
+            max-width: 1000px;
+        }
+        .tab-btn {
+            background-color: var(--surface-color);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            justify-content: center;
+        }
+        .tab-btn.active {
+            background-color: var(--primary-color);
+            color: #000;
+            border-color: var(--primary-color);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+            width: 100%;
+            max-width: 1000px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        .container {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            .tabs {
+                flex-direction: column;
+            }
+        }
+
+        .card {
+            background-color: var(--surface-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        h1, h2 {
+            margin-top: 0;
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            box-sizing: border-box;
+        }
+
+        button.submit-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-new { background-color: rgba(76, 175, 80, 0.2); color: #4caf50; }
+        .status-opened { background-color: rgba(255, 152, 0, 0.2); color: #ff9800; }
+        .purpose-keep { background-color: rgba(33, 150, 243, 0.2); color: #2196f3; }
+        .purpose-sell { background-color: rgba(156, 39, 176, 0.2); color: #e040fb; }
+
+        /* Finance Styles */
+        .finance-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        @media (max-width: 600px) {
+            .finance-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+        .summary-card {
+            background-color: var(--surface-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        .summary-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+        .text-green { color: #4caf50; }
+        .text-red { color: #f44336; }
+    </style>
+</head>
+<body>
+
+<!-- TABS NAVIGATION -->
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('filaments', event)"><i class="fa-solid fa-layer-group"></i> Filaments</button>
+    <button class="tab-btn" onclick="switchTab('costs', event)"><i class="fa-solid fa-chart-pie"></i> Costs & Finance</button>
+</div>
+
+<!-- FILAMENTS TAB -->
+<div id="tab-filaments" class="tab-content active">
+    <div class="container">
+        <div class="card">
+            <h2>Add Filament</h2>
+            <form id="addForm">
+                <div class="form-group">
+                    <label for="brand">Brand</label>
+                    <input type="text" id="brand" required placeholder="e.g. Prusament">
+                </div>
+                <div class="form-group">
+                    <label for="color">Color</label>
+                    <input type="text" id="color" required placeholder="e.g. Galaxy Black">
+                </div>
+                <div class="form-group">
+                    <label for="material">Material</label>
+                    <select id="material" required>
+                        <option value="PLA">PLA</option>
+                        <option value="PLA Silk">PLA Silk</option>
+                        <option value="PETG">PETG</option>
+                        <option value="ABS">ABS</option>
+                        <option value="TPU">TPU</option>
+                        <option value="ASA">ASA</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status" required>
+                        <option value="New">New</option>
+                        <option value="Opened">Opened</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <input type="number" id="quantity" required min="1" value="1">
+                </div>
+                <div class="form-group">
+                    <label for="purpose">Purpose</label>
+                    <select id="purpose" required>
+                        <option value="Keep">Keep for myself</option>
+                        <option value="Sell">Up for sale</option>
+                    </select>
+                </div>
+                <button type="submit" class="submit-btn">Add Roll</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>My Inventory (Keeping)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Brand</th>
+                        <th>Color</th>
+                        <th>Material</th>
+                        <th>Status</th>
+                        <th>Qty</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="keepTable"></tbody>
+            </table>
+
+            <h2 style="margin-top: 2rem;">For Sale</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Brand</th>
+                        <th>Color</th>
+                        <th>Material</th>
+                        <th>Status</th>
+                        <th>Qty</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="sellTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- COSTS & FINANCE TAB -->
+<div id="tab-costs" class="tab-content">
+    <div class="finance-summary">
+        <div class="summary-card">
+            <h3>Total Spent</h3>
+            <div class="summary-value text-red" id="totalSpent">₪0.00</div>
+        </div>
+        <div class="summary-card">
+            <h3>Total Earned</h3>
+            <div class="summary-value text-green" id="totalEarned">₪0.00</div>
+        </div>
+        <div class="summary-card">
+            <h3>Net Profit</h3>
+            <div class="summary-value" id="netProfit">₪0.00</div>
+        </div>
+    </div>
+
+    <div class="container" style="grid-template-columns: 1fr;">
+        <div class="card" style="margin-bottom: 2rem;">
+            <h2>Add Transaction</h2>
+            <form id="transactionForm">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="form-group">
+                        <label for="transType">Type</label>
+                        <select id="transType" required>
+                            <option value="Expense">Bought Filament (Expense)</option>
+                            <option value="Income">Sold Print (Income)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transAmount">Amount (₪)</label>
+                        <input type="number" id="transAmount" required step="0.01" placeholder="e.g. 25.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="transDesc">Description</label>
+                        <input type="text" id="transDesc" required placeholder="e.g. 2 rolls of PLA">
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn" style="margin-top: 1rem;">Add Transaction</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Transaction History</h2>
+            <table style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionTable">
+                    <!-- Rows will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Tab Switching Logic
+    window.switchTab = function(tabId, event) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById('tab-' + tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+</script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAvbBDeOTAF8nbH3iug0-Ajr1BT64388SA",
+      authDomain: "filament-track-127dd.firebaseapp.com",
+      projectId: "filament-track-127dd",
+      storageBucket: "filament-track-127dd.firebasestorage.app",
+      messagingSenderId: "555306112092",
+      appId: "1:555306112092:web:5003f81c1b8a8210f7c299"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const filamentsRef = collection(db, "filaments");
+    const transactionsRef = collection(db, "transactions");
+
+    // --- FILAMENT LOGIC ---
+    onSnapshot(filamentsRef, (snapshot) => {
+        const keepTableBody = document.getElementById('keepTable');
+        const sellTableBody = document.getElementById('sellTable');
+        keepTableBody.innerHTML = '';
+        sellTableBody.innerHTML = '';
+
+        snapshot.forEach((docSnap) => {
+            const filament = docSnap.data();
+            const docId = docSnap.id;
+            const tr = document.createElement('tr');
+            const statusClass = filament.status === 'New' ? 'status-new' : 'status-opened';
+
+            const renderReadOnly = () => {
+                tr.innerHTML = `
+                    <td>${filament.brand}</td>
+                    <td>${filament.color}</td>
+                    <td>${filament.material}</td>
+                    <td><span class="status-badge ${statusClass}">${filament.status}</span></td>
+                    <td>${filament.quantity || 1}</td>
+                    <td style="white-space: nowrap;">
+                        <button class="btn-edit" style="width: auto; padding: 0.25rem 0.5rem; margin-right: 0.25rem;">Edit</button>
+                        <button class="btn-delete" style="width: auto; padding: 0.25rem 0.5rem; background-color: #f44336; border: none; border-radius: 4px; color: white;">Delete</button>
+                    </td>
+                `;
+                tr.querySelector('.btn-edit').addEventListener('click', renderEdit);
+                tr.querySelector('.btn-delete').addEventListener('click', async () => {
+                    if (confirm("Delete this roll?")) await deleteDoc(doc(db, "filaments", docId));
+                });
+            };
+
+            const renderEdit = () => {
+                tr.innerHTML = `
+                    <td><input type="text" class="edit-brand" value="${filament.brand}" style="padding: 0.25rem; width: 80px;"></td>
+                    <td><input type="text" class="edit-color" value="${filament.color}" style="padding: 0.25rem; width: 80px;"></td>
+                    <td>
+                        <select class="edit-material" style="padding: 0.25rem; width: 80px;">
+                            <option value="PLA" ${filament.material === 'PLA' ? 'selected' : ''}>PLA</option>
+                            <option value="PLA Silk" ${filament.material === 'PLA Silk' ? 'selected' : ''}>PLA Silk</option>
+                            <option value="PETG" ${filament.material === 'PETG' ? 'selected' : ''}>PETG</option>
+                            <option value="ABS" ${filament.material === 'ABS' ? 'selected' : ''}>ABS</option>
+                            <option value="TPU" ${filament.material === 'TPU' ? 'selected' : ''}>TPU</option>
+                            <option value="ASA" ${filament.material === 'ASA' ? 'selected' : ''}>ASA</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="edit-status" style="padding: 0.25rem; width: 80px;">
+                            <option value="New" ${filament.status === 'New' ? 'selected' : ''}>New</option>
+                            <option value="Opened" ${filament.status === 'Opened' ? 'selected' : ''}>Opened</option>
+                        </select>
+                    </td>
+                    <td><input type="number" class="edit-quantity" value="${filament.quantity || 1}" min="1" style="padding: 0.25rem; width: 50px;"></td>
+                    <td style="white-space: nowrap; min-width: 150px;">
+                        <select class="edit-purpose" style="padding: 0.25rem; width: 60px; margin-right: 0.25rem;">
+                            <option value="Keep" ${filament.purpose === 'Keep' ? 'selected' : ''}>Keep</option>
+                            <option value="Sell" ${filament.purpose === 'Sell' ? 'selected' : ''}>Sell</option>
+                        </select>
+                        <button class="btn-save" style="width: auto; padding: 0.25rem 0.5rem; background-color: #4caf50; border: none; border-radius: 4px; color: white;">Save</button>
+                        <button class="btn-cancel" style="width: auto; padding: 0.25rem 0.5rem; background-color: #9e9e9e; border: none; border-radius: 4px; color: white;">Cancel</button>
+                    </td>
+                `;
+                tr.querySelector('.btn-save').addEventListener('click', async () => {
+                    await updateDoc(doc(db, "filaments", docId), {
+                        brand: tr.querySelector('.edit-brand').value,
+                        color: tr.querySelector('.edit-color').value,
+                        material: tr.querySelector('.edit-material').value,
+                        status: tr.querySelector('.edit-status').value,
+                        quantity: parseInt(tr.querySelector('.edit-quantity').value) || 1,
+                        purpose: tr.querySelector('.edit-purpose').value
+                    });
+                });
+                tr.querySelector('.btn-cancel').addEventListener('click', renderReadOnly);
+            };
+
+            renderReadOnly();
+            if (filament.purpose === 'Keep') keepTableBody.appendChild(tr);
+            else sellTableBody.appendChild(tr);
+        });
+    });
+
+    document.getElementById('addForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newFilament = {
+            brand: document.getElementById('brand').value,
+            color: document.getElementById('color').value,
+            material: document.getElementById('material').value,
+            status: document.getElementById('status').value,
+            quantity: parseInt(document.getElementById('quantity').value) || 1,
+            purpose: document.getElementById('purpose').value,
+            createdAt: new Date()
+        };
+        await addDoc(filamentsRef, newFilament);
+        document.getElementById('addForm').reset();
+        document.getElementById('quantity').value = 1;
+    });
+
+    // --- FINANCE LOGIC ---
+    const q = query(transactionsRef, orderBy("createdAt", "desc"));
+    onSnapshot(q, (snapshot) => {
+        const tableBody = document.getElementById('transactionTable');
+        tableBody.innerHTML = '';
+        
+        let totalSpent = 0;
+        let totalEarned = 0;
+
+        snapshot.forEach((docSnap) => {
+            const trans = docSnap.data();
+            const docId = docSnap.id;
+            
+            if (trans.type === 'Expense') totalSpent += Number(trans.amount);
+            if (trans.type === 'Income') totalEarned += Number(trans.amount);
+
+            const tr = document.createElement('tr');
+            const dateStr = trans.createdAt ? new Date(trans.createdAt.toDate()).toLocaleDateString() : new Date().toLocaleDateString();
+            const amountColor = trans.type === 'Income' ? '#4caf50' : '#f44336';
+            const sign = trans.type === 'Income' ? '+' : '-';
+
+            const renderReadOnly = () => {
+                tr.innerHTML = `
+                    <td>${dateStr}</td>
+                    <td>${trans.type}</td>
+                    <td>${trans.description}</td>
+                    <td style="color: ${amountColor}; font-weight: bold;">${sign}₪${Math.abs(Number(trans.amount)).toFixed(2)}</td>
+                    <td style="white-space: nowrap;">
+                        <button class="btn-edit" style="width: auto; padding: 0.25rem 0.5rem; margin-right: 0.25rem;">Edit</button>
+                        <button class="btn-delete" style="width: auto; padding: 0.25rem 0.5rem; background-color: #f44336; border: none; border-radius: 4px; color: white;">Delete</button>
+                    </td>
+                `;
+                tr.querySelector('.btn-edit').addEventListener('click', renderEdit);
+                tr.querySelector('.btn-delete').addEventListener('click', async () => {
+                    if (confirm("Delete this transaction?")) await deleteDoc(doc(db, "transactions", docId));
+                });
+            };
+
+            const renderEdit = () => {
+                tr.innerHTML = `
+                    <td>${dateStr}</td>
+                    <td>
+                        <select class="edit-type" style="padding: 0.25rem;">
+                            <option value="Expense" ${trans.type === 'Expense' ? 'selected' : ''}>Expense</option>
+                            <option value="Income" ${trans.type === 'Income' ? 'selected' : ''}>Income</option>
+                        </select>
+                    </td>
+                    <td><input type="text" class="edit-desc" value="${trans.description}" style="padding: 0.25rem; width: 100%;"></td>
+                    <td><input type="number" class="edit-amount" value="${trans.amount}" step="0.01" style="padding: 0.25rem; width: 80px;"></td>
+                    <td style="white-space: nowrap;">
+                        <button class="btn-save" style="width: auto; padding: 0.25rem 0.5rem; background-color: #4caf50; border: none; border-radius: 4px; color: white; margin-right: 0.25rem;">Save</button>
+                        <button class="btn-cancel" style="width: auto; padding: 0.25rem 0.5rem; background-color: #9e9e9e; border: none; border-radius: 4px; color: white;">Cancel</button>
+                    </td>
+                `;
+                tr.querySelector('.btn-save').addEventListener('click', async () => {
+                    await updateDoc(doc(db, "transactions", docId), {
+                        type: tr.querySelector('.edit-type').value,
+                        description: tr.querySelector('.edit-desc').value,
+                        amount: Number(tr.querySelector('.edit-amount').value)
+                    });
+                });
+                tr.querySelector('.btn-cancel').addEventListener('click', renderReadOnly);
+            };
+
+            renderReadOnly();
+            tableBody.appendChild(tr);
+        });
+
+        // Update summaries
+        document.getElementById('totalSpent').innerText = '₪' + totalSpent.toFixed(2);
+        document.getElementById('totalEarned').innerText = '₪' + totalEarned.toFixed(2);
+        
+        const net = totalEarned - totalSpent;
+        const netEl = document.getElementById('netProfit');
+        netEl.innerText = '₪' + net.toFixed(2);
+        netEl.style.color = net >= 0 ? '#4caf50' : '#f44336';
+    }, (error) => {
+        // If indexing error happens (which requires building an index in Firebase)
+        console.error("Finance error:", error);
+    });
+
+    document.getElementById('transactionForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newTrans = {
+            type: document.getElementById('transType').value,
+            amount: Number(document.getElementById('transAmount').value),
+            description: document.getElementById('transDesc').value,
+            createdAt: new Date()
+        };
+        await addDoc(transactionsRef, newTrans);
+        document.getElementById('transactionForm').reset();
+    });
+
+</script>
+</body>
+</html>
