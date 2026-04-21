@@ -300,11 +300,11 @@
             <form id="addForm">
                 <div class="form-group">
                     <label for="brand">יצרן (מותג)</label>
-                    <input type="text" id="brand" required placeholder="למשל Prusament">
+                    <input type="text" id="brand" required placeholder="למשל פולילייט (Polymaker)">
                 </div>
                 <div class="form-group">
                     <label for="color">צבע</label>
-                    <input type="text" id="color" required placeholder="למשל Galaxy Black">
+                    <input type="text" id="color" required placeholder="למשל שחור">
                 </div>
                 <div class="form-group">
                     <label for="material">סוג חומר</label>
@@ -485,7 +485,7 @@
                         <span class="status-badge ${statusClass}">${statusText}</span>
                     </div>
                     <div class="item-body">
-                        ${filament.photo ? `<img src="${filament.photo}" class="item-photo">` : `<div class="item-photo">אין תמונה</div>`}
+                        ${filament.photo ? `<img src="${filament.photo}" class="item-photo" onclick="openImageModal('${filament.photo}')" style="cursor: pointer;">` : `<div class="item-photo">אין תמונה</div>`}
                         <div class="item-details">
                             <div><strong>חומר:</strong> ${filament.material}</div>
                             <div><strong>כמות:</strong> ${filament.quantity || 1}</div>
@@ -525,7 +525,7 @@
                             <option value="Keep" ${filament.purpose === 'Keep' ? 'selected' : ''}>לשמור לעצמי</option>
                             <option value="Sell" ${filament.purpose === 'Sell' ? 'selected' : ''}>למכירה</option>
                         </select>
-                        ${filament.photo ? `<img src="${filament.photo}" class="item-photo" style="align-self: center; margin: 0.5rem 0;">` : ''}
+                        ${filament.photo ? `<img src="${filament.photo}" class="item-photo" onclick="openImageModal('${filament.photo}')" style="align-self: center; margin: 0.5rem 0; cursor: pointer;">` : ''}
                         <input type="file" class="edit-photo" accept="image/*" style="font-size: 0.8rem;">
                     </div>
                     <div class="item-actions">
@@ -736,6 +736,24 @@
         document.getElementById('transactionForm').reset();
     });
 
+</script>
+
+<!-- Image Modal -->
+<div id="imageModal" onclick="closeImageModal(event)" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.9); justify-content:center; align-items:center; cursor: zoom-out;">
+    <span class="close-modal" style="position:absolute; top:20px; right:35px; color:#f1f1f1; font-size:40px; font-weight:bold; cursor:pointer;">&times;</span>
+    <img id="modalImage" style="max-width:90%; max-height:90%; border-radius:8px; cursor: default;">
+</div>
+
+<script>
+    window.openImageModal = function(src) {
+        document.getElementById('modalImage').src = src;
+        document.getElementById('imageModal').style.display = 'flex';
+    };
+    window.closeImageModal = function(e) {
+        if (e.target.id === 'imageModal' || e.target.className === 'close-modal') {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+    };
 </script>
 </body>
 </html>
