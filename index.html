@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>3D Filament Tracker</title>
     <!-- Icons for tabs -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -145,6 +147,60 @@
         th {
             color: var(--text-secondary);
             font-weight: 600;
+        }
+
+        /* Mobile App Feel - Responsive Tables */
+        @media (max-width: 768px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            tr {
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                margin-bottom: 1rem;
+                padding: 1rem;
+                background-color: var(--bg-color);
+            }
+            td {
+                border: none;
+                border-bottom: 1px solid var(--border-color);
+                position: relative;
+                padding-left: 50%;
+                text-align: right;
+                min-height: 1.5rem;
+                padding-bottom: 0.5rem;
+                padding-top: 0.5rem;
+            }
+            td:last-child {
+                border-bottom: 0;
+            }
+            td:before {
+                position: absolute;
+                top: 0.5rem;
+                left: 0;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                text-align: left;
+                font-weight: bold;
+                color: var(--text-secondary);
+                content: attr(data-label);
+            }
+            /* Adjust inputs for mobile edit mode */
+            td input, td select {
+                width: 100% !important;
+                margin-top: 0.5rem;
+            }
+            td .btn-save, td .btn-cancel, td .btn-edit, td .btn-delete {
+                width: 100% !important;
+                margin-top: 0.5rem;
+                display: block;
+            }
         }
 
         .status-badge {
@@ -382,12 +438,12 @@
 
             const renderReadOnly = () => {
                 tr.innerHTML = `
-                    <td>${filament.brand}</td>
-                    <td>${filament.color}</td>
-                    <td>${filament.material}</td>
-                    <td><span class="status-badge ${statusClass}">${filament.status}</span></td>
-                    <td>${filament.quantity || 1}</td>
-                    <td style="white-space: nowrap;">
+                    <td data-label="Brand">${filament.brand}</td>
+                    <td data-label="Color">${filament.color}</td>
+                    <td data-label="Material">${filament.material}</td>
+                    <td data-label="Status"><span class="status-badge ${statusClass}">${filament.status}</span></td>
+                    <td data-label="Qty">${filament.quantity || 1}</td>
+                    <td data-label="Actions" style="white-space: nowrap;">
                         <button class="btn-edit" style="width: auto; padding: 0.25rem 0.5rem; margin-right: 0.25rem;">Edit</button>
                         <button class="btn-delete" style="width: auto; padding: 0.25rem 0.5rem; background-color: #f44336; border: none; border-radius: 4px; color: white;">Delete</button>
                     </td>
@@ -486,11 +542,11 @@
 
             const renderReadOnly = () => {
                 tr.innerHTML = `
-                    <td>${dateStr}</td>
-                    <td>${trans.type}</td>
-                    <td>${trans.description}</td>
-                    <td style="color: ${amountColor}; font-weight: bold;">${sign}₪${Math.abs(Number(trans.amount)).toFixed(2)}</td>
-                    <td style="white-space: nowrap;">
+                    <td data-label="Date">${dateStr}</td>
+                    <td data-label="Type">${trans.type}</td>
+                    <td data-label="Description">${trans.description}</td>
+                    <td data-label="Amount" style="color: ${amountColor}; font-weight: bold;">${sign}₪${Math.abs(Number(trans.amount)).toFixed(2)}</td>
+                    <td data-label="Actions" style="white-space: nowrap;">
                         <button class="btn-edit" style="width: auto; padding: 0.25rem 0.5rem; margin-right: 0.25rem;">Edit</button>
                         <button class="btn-delete" style="width: auto; padding: 0.25rem 0.5rem; background-color: #f44336; border: none; border-radius: 4px; color: white;">Delete</button>
                     </td>
