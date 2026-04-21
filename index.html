@@ -417,7 +417,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAvbBDeOTAF8nbH3iug0-Ajr1BT64388SA",
@@ -610,19 +610,61 @@
     document.getElementById('addForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        const newBrand = document.getElementById('brand').value.trim();
+        const newColor = document.getElementById('color').value.trim();
+        const newMaterial = document.getElementById('material').value;
+        const newStatus = document.getElementById('status').value;
+        const newPurpose = document.getElementById('purpose').value;
+        const newQuantity = parseInt(document.getElementById('quantity').value) || 1;
+
+        const snapshot = await getDocs(filamentsRef);
+        let duplicateDocId = null;
+        let existingQuantity = 0;
+        let existingPhoto = null;
+
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const dBrand = (data.brand || '').trim().toLowerCase();
+            const dColor = (data.color || '').trim().toLowerCase();
+            if (
+                dBrand === newBrand.toLowerCase() &&
+                dColor === newColor.toLowerCase() &&
+                data.material === newMaterial &&
+                data.status === newStatus &&
+                data.purpose === newPurpose
+            ) {
+                duplicateDocId = docSnap.id;
+                existingQuantity = data.quantity || 1;
+                existingPhoto = data.photo || null;
+            }
+        });
+
         const fileInput = document.getElementById('photo');
         let photoDataUrl = null;
         if (fileInput.files.length > 0) {
             photoDataUrl = await compressImage(fileInput.files[0]);
         }
 
+        if (duplicateDocId) {
+            const msg = "A filament with this exact Brand, Color, Material, Status, and Purpose already exists.\n\nClick 'OK' to just add the quantity to the existing roll.\nClick 'Cancel' to abort and do nothing.";
+            if (confirm(msg)) {
+                await updateDoc(doc(db, "filaments", duplicateDocId), {
+                    quantity: existingQuantity + newQuantity,
+                    photo: photoDataUrl || existingPhoto
+                });
+                document.getElementById('addForm').reset();
+                document.getElementById('quantity').value = 1;
+            }
+            return;
+        }
+
         const newFilament = {
-            brand: document.getElementById('brand').value,
-            color: document.getElementById('color').value,
-            material: document.getElementById('material').value,
-            status: document.getElementById('status').value,
-            quantity: parseInt(document.getElementById('quantity').value) || 1,
-            purpose: document.getElementById('purpose').value,
+            brand: newBrand,
+            color: newColor,
+            material: newMaterial,
+            status: newStatus,
+            quantity: newQuantity,
+            purpose: newPurpose,
             photo: photoDataUrl,
             createdAt: new Date()
         };
