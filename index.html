@@ -151,6 +151,33 @@
         .status-new { background-color: rgba(76, 175, 80, 0.2); color: #4caf50; }
         .status-opened { background-color: rgba(255, 152, 0, 0.2); color: #ff9800; }
 
+        /* --- NEW GROUPING --- */
+        .material-group {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        .group-header {
+            background-color: var(--surface-color);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .group-header:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .material-group .items-grid {
+            padding: 1rem;
+            margin-top: 0;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+        }
+
         /* --- NEW CARDS GRID SYSTEM (Replaces Tables) --- */
         .items-grid {
             display: grid;
@@ -318,10 +345,10 @@
 
         <div class="card">
             <h2>My Inventory (Keeping)</h2>
-            <div id="keepTable" class="items-grid"></div>
+            <div id="keepTable"></div>
 
             <h2 style="margin-top: 2.5rem;">For Sale</h2>
-            <div id="sellTable" class="items-grid"></div>
+            <div id="sellTable"></div>
         </div>
     </div>
 </div>
@@ -435,10 +462,8 @@
     const filamentsQuery = query(filamentsRef, orderBy("material", "asc"));
     
     onSnapshot(filamentsQuery, (snapshot) => {
-        const keepTableBody = document.getElementById('keepTable');
-        const sellTableBody = document.getElementById('sellTable');
-        keepTableBody.innerHTML = '';
-        sellTableBody.innerHTML = '';
+        const keepGroups = {};
+        const sellGroups = {};
 
         snapshot.forEach((docSnap) => {
             const filament = docSnap.data();
@@ -526,9 +551,60 @@
             };
 
             renderReadOnly();
-            if (filament.purpose === 'Keep') keepTableBody.appendChild(div);
-            else sellTableBody.appendChild(div);
+            
+            const targetGroup = filament.purpose === 'Keep' ? keepGroups : sellGroups;
+            const mat = filament.material || 'Unknown';
+            if (!targetGroup[mat]) targetGroup[mat] = { totalQty: 0, items: [] };
+            targetGroup[mat].totalQty += (filament.quantity || 1);
+            targetGroup[mat].items.push(div);
         });
+
+        const renderGroups = (groupsObj, containerId) => {
+            const containerEl = document.getElementById(containerId);
+            containerEl.innerHTML = '';
+            
+            const sortedMaterials = Object.keys(groupsObj).sort();
+            if(sortedMaterials.length === 0) {
+                containerEl.innerHTML = '<div style="color:var(--text-secondary); padding: 1rem;">No filaments found.</div>';
+                return;
+            }
+
+            sortedMaterials.forEach(mat => {
+                const groupData = groupsObj[mat];
+                
+                const groupWrapper = document.createElement('div');
+                groupWrapper.className = 'material-group';
+                
+                const header = document.createElement('div');
+                header.className = 'group-header';
+                header.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <i class="fa-solid fa-chevron-right toggle-icon" style="color:var(--text-secondary); width: 20px;"></i>
+                        <span style="font-weight:bold; font-size:1.1rem;">${mat}</span>
+                    </div>
+                    <span class="status-badge" style="background:var(--primary-color); color:#000;">Total Qty: ${groupData.totalQty}</span>
+                `;
+                
+                const grid = document.createElement('div');
+                grid.className = 'items-grid';
+                grid.style.display = 'none';
+                groupData.items.forEach(item => grid.appendChild(item));
+                
+                header.addEventListener('click', () => {
+                    grid.style.display = grid.style.display === 'none' ? 'grid' : 'none';
+                    const icon = header.querySelector('.toggle-icon');
+                    icon.classList.toggle('fa-chevron-down');
+                    icon.classList.toggle('fa-chevron-right');
+                });
+                
+                groupWrapper.appendChild(header);
+                groupWrapper.appendChild(grid);
+                containerEl.appendChild(groupWrapper);
+            });
+        };
+
+        renderGroups(keepGroups, 'keepTable');
+        renderGroups(sellGroups, 'sellTable');
     });
 
     document.getElementById('addForm').addEventListener('submit', async (e) => {
