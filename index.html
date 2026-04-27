@@ -241,7 +241,7 @@
             padding-top: 1rem;
             border-top: 1px solid var(--border-color);
         }
-        .btn-edit, .btn-delete, .btn-save, .btn-cancel {
+        .btn-edit, .btn-delete, .btn-save, .btn-cancel, .btn-sell {
             flex: 1;
             padding: 0.5rem;
             border: none;
@@ -250,6 +250,7 @@
             font-weight: bold;
             font-size: 0.9rem;
         }
+        .btn-sell { background-color: rgba(76, 175, 80, 0.1); color: #4caf50; border: 1px solid #4caf50; }
         .btn-edit { background-color: var(--surface-color); color: var(--text-primary); border: 1px solid var(--text-secondary); }
         .btn-delete { background-color: rgba(244, 67, 54, 0.1); color: #f44336; border: 1px solid #f44336; }
         .btn-save { background-color: #4caf50; color: white; border: 1px solid #4caf50; }
@@ -489,10 +490,51 @@
                         </div>
                     </div>
                     <div class="item-actions">
+                        <button class="btn-sell">Sold</button>
                         <button class="btn-edit">Edit</button>
                         <button class="btn-delete">Delete</button>
                     </div>
                 `;
+                div.querySelector('.btn-sell').addEventListener('click', async () => {
+                    let currentQty = filament.quantity || 1;
+                    let sellQty = 1;
+
+                    if (currentQty > 1) {
+                        const qtyStr = prompt(`How many units were sold? (out of ${currentQty})`, "1");
+                        if (qtyStr === null) return; // Cancelled
+                        sellQty = parseInt(qtyStr, 10);
+                        if (isNaN(sellQty) || sellQty < 1 || sellQty > currentQty) {
+                            alert("Invalid quantity.");
+                            return;
+                        }
+                    }
+
+                    const priceStr = prompt("What was the total selling price? (₪)", "0");
+                    if (priceStr === null) return; // Cancelled
+                    const price = parseFloat(priceStr);
+                    if (isNaN(price) || price < 0) {
+                        alert("Invalid price.");
+                        return;
+                    }
+
+                    // Add transaction
+                    const newTrans = {
+                        type: 'Income',
+                        amount: price,
+                        description: `Sold ${sellQty} roll(s) of ${filament.brand} ${filament.color} ${filament.material}`,
+                        createdAt: new Date()
+                    };
+                    await addDoc(transactionsRef, newTrans);
+
+                    // Update or delete filament
+                    if (sellQty >= currentQty) {
+                        await deleteDoc(doc(db, "filaments", docId));
+                    } else {
+                        await updateDoc(doc(db, "filaments", docId), {
+                            quantity: currentQty - sellQty
+                        });
+                    }
+                });
                 div.querySelector('.btn-edit').addEventListener('click', renderEdit);
                 div.querySelector('.btn-delete').addEventListener('click', async () => {
                     if (confirm("Delete this roll?")) await deleteDoc(doc(db, "filaments", docId));
